@@ -83,6 +83,19 @@ list(all_data)
 all_data['Sales'] = all_data['Quantity Ordered'] * all_data['Price Each']
 all_data['Sales']
 
+# ADD CITY COLUMN
+## let's use .apply()
+
+def get_city(address):
+    return address.split(',')[1] 
+    #917 1st ST, Dallas, TX 75001->thid def will extract 2nd index comma from beginning 
+    #index in python start from zero
+
+def get_state(address):
+    return address.split(',')[2].split(' ')[1]
+all_data['City'] = all_data['Purchase Address'].apply(lambda x: f"{get_city(x)} ({get_state(x)})")
+all_data['City']
+
 
 
 #What was the best month for sales? How much was earned that month?
@@ -96,6 +109,22 @@ plt.xticks(months)
 plt.ylabel('Sales in USD (value in Million)')
 plt.xlabel('Month Number')
 plt.show()
+
+# What city had the highest number of sales?
+result = all_data.groupby('City').sum()
+result.sort_values('Sales', ascending=False)
+
+# plot city with highest number of sales 
+cities = all_data['City'].unique()
+
+plt.bar(cities, result['Sales'])
+plt.xticks(cities, rotation='vertical', size=6)
+plt.ylabel('Sales in USD (in Million)')
+plt.xlabel('City Name')
+plt.tight_layout()
+plt.show()
+
+
 
 
 
