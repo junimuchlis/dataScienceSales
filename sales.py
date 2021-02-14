@@ -49,6 +49,7 @@ countNanPerColumn = all_data.isnull().sum()
 all_data = all_data.dropna(how='all')
 all_data.head()
 all_data.shape
+all_data['Order Date']
 
 ### recheck NAN Values
 recheckNan = all_data.isnull().values.any() #FALSE, yes THERE ARE NOT LEFT
@@ -88,11 +89,14 @@ all_data['Sales']
 
 def get_city(address):
     return address.split(',')[1] 
-    #917 1st ST, Dallas, TX 75001->thid def will extract 2nd index comma from beginning 
+    #917 1st ST, Dallas, TX 75001->this def will extract 2nd index comma from beginning i.e Dallas
     #index in python start from zero
 
 def get_state(address):
     return address.split(',')[2].split(' ')[1]
+    # 917 1st ST, Dallas, TX 75001->this def will extract 3rd index comma from beginning i.e TX 75001
+    # and extract again the "TX 75001" by the second "space" into "TX"
+
 all_data['City'] = all_data['Purchase Address'].apply(lambda x: f"{get_city(x)} ({get_state(x)})")
 all_data['City']
 
@@ -115,7 +119,8 @@ result = all_data.groupby('City').sum()
 result.sort_values('Sales', ascending=False)
 
 # plot city with highest number of sales 
-cities = all_data['City'].unique()
+
+cities = [city for city, df in all_data.groupby('City')]
 
 plt.bar(cities, result['Sales'])
 plt.xticks(cities, rotation='vertical', size=6)
@@ -124,9 +129,30 @@ plt.xlabel('City Name')
 plt.tight_layout()
 plt.show()
 
+#WHAT TIME SHOULD WE DISPLAY ADVERTISEMENTS TO MAXIMIZE 
+#LIKELIHOOD OF CUSTOMERS' BUYING PRODUCT?
 
+all_data['Order Date'] = pd.to_datetime(all_data['Order Date'])
+all_data['Order Date']
 
+## add hour and minute column
+all_data['Hour'] = all_data['Order Date'].dt.hour
+all_data['Minute'] = all_data['Order Date'].dt.minute
+all_data[['Hour', 'Minute']].head()
 
+##what time should we display advertisements 
+hours = [hour for hour, df in all_data.groupby('Hour')]
+plt.plot(hours, all_data.groupby(['Hour']).count())
+plt.xticks(hours)
+plt.xlabel('Hour')
+plt.ylabel('Number of order')
+plt.grid()
+plt.show()
+
+# WHAT PRODUCTS ARE MOST OFTEN SOLD TOGETHER
+df = all_data[all_data['Order ID'].duplicated(keep=False)]
+df['Grouped'] = df.groupby('Order ID')['Product'].transform(lambda x: ','.join(x))
+df.head()
 
 
 
